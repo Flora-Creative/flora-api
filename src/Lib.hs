@@ -1,0 +1,47 @@
+-- {-# LANGUAGE DataKinds       #-}
+-- {-# LANGUAGE TemplateHaskell #-}
+-- {-# LANGUAGE TypeOperators   #-}
+-- module Lib
+--     ( startApp
+--     ) where
+--
+-- import           Data.Aeson
+-- import           Data.Aeson.TH
+-- import           Network.Wai
+-- import           Network.Wai.Handler.Warp
+-- import           Servant
+
+-- data FloraApp = FloraApp
+--   {index :: Int
+--     , name :: String
+--     , images:: [String]
+--     , videoLinks:: [String]
+--     , itunesURL:: String
+--     , appDescription:: String
+--     , backgroundColor :: String
+--     , foregroundColor :: String
+--     , auIdentifier :: String
+--     , appIcon :: String
+--   } deriving (Eq, Show)
+
+-- $(deriveJSON defaultOptions ''FloraApp)
+--
+-- type API = Get '[JSON] [FloraApp]
+--
+-- startApp :: IO ()
+-- startApp = run 1234 app
+--
+-- app :: Application
+-- app = serve api server
+--
+-- api :: Proxy API
+-- api = Proxy
+--
+-- server :: Server API
+-- server = return apps
+--
+-- apps :: [FloraApp]
+-- apps = [buttercup, buttercup]
+--
+-- buttercup :: FloraApp
+-- buttercup = FloraApp 1 "Buttercup Bitcrush" [] [] "www.itunes.com" "A Cool app that has a description about some things" "#575757" "#434343" "com.tjpm.buttercup" "App icon url"

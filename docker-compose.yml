@@ -1,0 +1,15 @@
+version: '3'
+services:
+    flora-api:
+        build: .
+        image: flora-api
+        command: flora-api
+        expose:
+            - "1234"
+    nginx:
+        build: ./nginx
+        image: nginx
+        ports:
+            - "8080:80"
+        depends_on:
+            - flora-api
