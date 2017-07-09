@@ -12,6 +12,7 @@ import           Control.Monad.Reader                 (MonadIO, MonadReader,
 import           Control.Monad.Trans.Maybe            (MaybeT (..), runMaybeT)
 import qualified Data.ByteString.Char8                as BS
 import           Data.Monoid                          ((<>))
+import           Data.List
 import           Database.Persist.Postgresql          (ConnectionPool,
                                                        ConnectionString,
                                                        createPostgresqlPool)
@@ -74,11 +75,11 @@ makePool Production = do
     -- give us a @Maybe a@, which would make the code quite a bit more
     -- verbose.
     pool <- runMaybeT $ do
-        let keys = [ "host="
-                   , "port="
-                   , "user="
-                   , "password="
-                   , "dbname="
+        let keys = [ " host="
+                   , " port="
+                   , " user="
+                   , " password="
+                   , " dbname="
                    ]
             envs = [ "PGHOST"
                    , "PGPORT"
@@ -87,7 +88,7 @@ makePool Production = do
                    , "PGDATABASE"
                    ]
         envVars <- traverse (MaybeT . lookupEnv) envs
-        let prodStr = mconcat . zipWith (<> " " <>) keys $ BS.pack <$> envVars
+        let prodStr = mconcat . zipWith spaceCat keys $ BS.pack <$> envVars
         runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
     case pool of
         -- If we don't have a correct database configuration, we can't
@@ -96,6 +97,8 @@ makePool Production = do
         -- 'Either'.
          Nothing -> throwIO (userError "Database Configuration not present in environment.")
          Just a -> return a
+
+spaceCat a b = a <> " " <> b
 
 -- | The number of pools to use for a given environment.
 envPool :: Environment -> Int

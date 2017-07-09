@@ -4,11 +4,13 @@ import           Database.Persist.Postgresql (runSqlPool)
 import           Network.Wai.Handler.Warp    (run)
 import           System.Environment          (lookupEnv)
 
-import           Api                         (app)
+import           Api                         (app, specs)
 import           Config                      (Config (..), Environment (..),
                                               makePool, setLogger)
 import           Models                      (doMigrations)
 import           Safe                        (readMay)
+import           Elm                         (Spec (Spec), specsToDir, toElmDecoderSource,
+                                              toElmTypeSource)
 
 
 -- | The 'main' function gathers the required environment information and
