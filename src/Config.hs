@@ -87,7 +87,7 @@ makePool Production = do
                    , "PGDATABASE"
                    ]
         envVars <- traverse (MaybeT . lookupEnv) envs
-        let prodStr = mconcat . zipWith (<>) keys $ BS.pack <$> envVars
+        let prodStr = mconcat . zipWith (<> " " <>) keys $ BS.pack <$> envVars
         runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
     case pool of
         -- If we don't have a correct database configuration, we can't
@@ -106,4 +106,4 @@ envPool Production = 8
 -- | A basic 'ConnectionString' for local/test development. Pass in either
 -- @""@ for 'Development' or @"test"@ for 'Test'.
 connStr :: BS.ByteString -> ConnectionString
-connStr sfx = "host=localhost dbname=floraapps" <> sfx <> " user=TimothyJ password= port=5432"
+connStr sfx = "host=localhost dbname=postgres" <> sfx <> " user=TimothyJ password= port=5432"

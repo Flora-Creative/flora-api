@@ -10,19 +10,23 @@
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE StandaloneDeriving         #-}
+
 
 module Models where
 
 import           Control.Monad.Reader
-import           Data.Aeson           (FromJSON, ToJSON)
+import           Data.Aeson
+import           Data.Text
 import           Database.Persist.Sql
-import           Database.Persist.TH  (mkMigrate, mkPersist, persistLowerCase,
-                                       share, sqlSettings)
+import           Database.Persist.TH
 import           GHC.Generics         (Generic)
 
 import           Config
-import           Elm          (ElmType)
+import           Elm
 import           Servant      ((:<|>), (:>), ReqBody, Post, Get, JSON)
+import           Elm.Export.Persist
+import           Elm.Export.Persist.BackendKey ()
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Floraapps json
@@ -36,8 +40,14 @@ Floraapps json
     auIdentifier String
     appIcon String
     shortName String
-    deriving Show
+    deriving Show Generic
 |]
+
+instance ElmType Floraapps
+
+deriving instance ElmType FloraappsId
+
+newtype FloraApp = EntId Floraapps
 
 doMigrations :: SqlPersistM ()
 doMigrations = runMigration migrateAll
