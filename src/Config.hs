@@ -12,7 +12,6 @@ import           Control.Monad.Reader                 (MonadIO, MonadReader,
 import           Control.Monad.Trans.Maybe            (MaybeT (..), runMaybeT)
 import qualified Data.ByteString.Char8                as BS
 import           Data.Monoid                          ((<>))
-import           Data.List
 import           Database.Persist.Postgresql          (ConnectionPool,
                                                        ConnectionString,
                                                        createPostgresqlPool)
@@ -56,6 +55,8 @@ setLogger Test = id
 setLogger Development = logStdoutDev
 setLogger Production = logStdout
 
+spaceCat a b = a <> " " <> b
+
 -- | This function creates a 'ConnectionPool' for the given environment.
 -- For 'Development' and 'Test' environments, we use a stock and highly
 -- insecure connection string. The 'Production' environment acquires the
@@ -86,9 +87,9 @@ makePool Production = do
                    , "PGUSER"
                    , "PGPASS"
                    , "PGDATABASE"
-                   ]
+                   ]        
         envVars <- traverse (MaybeT . lookupEnv) envs
-        let prodStr = mconcat . zipWith spaceCat keys $ BS.pack <$> envVars
+        let prodStr = mconcat . zipWith (spaceCat) keys $ BS.pack <$> envVars
         runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
     case pool of
         -- If we don't have a correct database configuration, we can't
@@ -97,8 +98,6 @@ makePool Production = do
         -- 'Either'.
          Nothing -> throwIO (userError "Database Configuration not present in environment.")
          Just a -> return a
-
-spaceCat a b = a <> " " <> b
 
 -- | The number of pools to use for a given environment.
 envPool :: Environment -> Int
@@ -109,4 +108,4 @@ envPool Production = 8
 -- | A basic 'ConnectionString' for local/test development. Pass in either
 -- @""@ for 'Development' or @"test"@ for 'Test'.
 connStr :: BS.ByteString -> ConnectionString
-connStr sfx = "host=localhost dbname=postgres" <> sfx <> " user=TimothyJ password= port=5432"
+connStr sfx = "host=localhost dbname=floraapps" <> sfx <> " user=TimothyJ password= port=5432"
