@@ -1,20 +1,13 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE QuasiQuotes                #-}
-{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE StandaloneDeriving         #-}
 
-module Api (app, specs) where
+module Api (app, AppAPI) where
 
 import           Control.Monad.Except
 import           Control.Monad.Reader        (ReaderT, runReaderT)
@@ -29,10 +22,6 @@ import           Servant
 import           Config                      (App (..), Config (..))
 import           Models
 import           Api.FloraApp
-import           Elm                         (Spec (Spec), specsToDir, toElmTypeSource,
-                                              toElmDecoderSource, toElmEncoderSource)
-import           Servant.Elm
-import           Elm.Export.Persist
 import           GHC.Generics                (Generic)
 
 -- | This is the function we export to run our 'UserAPI'. Given
@@ -75,17 +64,3 @@ appApi = Proxy
 app :: Config -> Application
 app cfg =
     serve appApi (appToServer cfg :<|> files)
-
-specs :: Spec
-specs =
-    Spec ["AppAPI"]
-         (defElmImports
-          : toElmTypeSource    (Proxy :: Proxy (EntId Floraapps))
-          : toElmDecoderSource (Proxy :: Proxy (EntId Floraapps))
-          : toElmEncoderSource (Proxy :: Proxy (EntId Floraapps))
-          : generateElmForAPIWith elmOpts  (Proxy :: Proxy FloraAppElmAPI))
-
-elmOpts :: ElmOptions
-elmOpts =
-  defElmOptions
-    { urlPrefix = Dynamic }

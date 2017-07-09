@@ -47,7 +47,37 @@ instance ElmType Floraapps
 
 deriving instance ElmType FloraappsId
 
-newtype FloraApp = EntId Floraapps
+data IOSApp = IOSApp {
+      appName :: String
+    , images :: [String]
+    , videoLinks :: [String]
+    , itunesUrl :: String
+    , appDescription :: String
+    , backgroundColor :: String
+    , foregroundColor :: String
+    , auIdentifier :: String
+    , appIcon :: String
+    , shortName :: String
+  } deriving (Eq, Show, Generic)
+
+instance ToJSON IOSApp
+instance FromJSON IOSApp
+instance ElmType IOSApp
+
+appFromEntity :: Entity Floraapps -> IOSApp
+appFromEntity entity =
+  IOSApp {
+            appName         = floraappsAppName         $ entityVal entity
+          , images          = floraappsImages          $ entityVal entity
+          , videoLinks      = floraappsVideoLinks      $ entityVal entity
+          , itunesUrl       = floraappsItunesUrl       $ entityVal entity
+          , appDescription  = floraappsAppDescription  $ entityVal entity
+          , backgroundColor = floraappsBackgroundColor $ entityVal entity
+          , foregroundColor = floraappsForegroundColor $ entityVal entity
+          , auIdentifier    = floraappsAuIdentifier    $ entityVal entity
+          , appIcon         = floraappsAppIcon         $ entityVal entity
+          , shortName       = floraappsShortName       $ entityVal entity
+  }
 
 doMigrations :: SqlPersistM ()
 doMigrations = runMigration migrateAll

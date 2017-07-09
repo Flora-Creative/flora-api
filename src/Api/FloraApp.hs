@@ -13,7 +13,6 @@ import           Control.Monad.Except
 import           Control.Monad.Reader        (ReaderT, runReaderT)
 import           Control.Monad.Reader.Class
 import           Data.Int                    (Int64)
-import           Data.Proxy                  (Proxy (Proxy))
 import           Database.Persist.Postgresql (Entity (..), fromSqlKey, insert,
                                               selectFirst, selectList, (==.), SelectOpt(..))
 import           Network.Wai                 (Application)
@@ -22,20 +21,10 @@ import           Servant.JS                  (vanillaJS, writeJSForAPI)
 
 import           Config                      (App (..), Config (..))
 import           Models
-import           Elm.Export.Persist
-import           Elm.Export.Persist.BackendKey ()
-import           Elm                         (Spec (Spec), specsToDir, toElmTypeSource,
-                                              toElmDecoderSource, toElmEncoderSource)
-import           Servant.Elm
-
 
 type FloraAppAPI =
-          Get '[JSON] [Entity Floraapps]
-          :<|>  Capture "name" String :> Get '[JSON] (Entity Floraapps)
-
-type FloraAppElmAPI =
-          Get '[JSON] [EntId Floraapps]
-          :<|>  Capture "name" String :> Get '[JSON] (EntId Floraapps)
+          Get '[JSON] [IOSApp]
+          :<|>  Capture "name" String :> Get '[JSON]  IOSApp
 
 -- | The server that runs the UserAPI
 floraAppServer :: ServerT FloraAppAPI App
@@ -43,14 +32,17 @@ floraAppServer = allFloraApps
                  :<|> singleFloraApp
 
 -- | Returns all users in the database.
-allFloraApps :: App [Entity Floraapps]
-allFloraApps =
-     runDb (selectList [] [])
+allFloraApps :: App [IOSApp]
+allFloraApps = do
+    storedApps <- runDb (selectList [] [])
+    let apps = map appFromEntity storedApps
+    return apps
 
 -- | Returns an app by name or throws a 404 error.
-singleFloraApp :: String -> App (Entity Floraapps)
+singleFloraApp :: String -> App IOSApp
 singleFloraApp str = do
-    maybeApp <- runDb (selectFirst [FloraappsShortName ==. str] [Asc FloraappsId])
+    maybeEntity <- runDb (selectFirst [FloraappsShortName ==. str] [Asc FloraappsId])
+    let maybeApp = fmap appFromEntity maybeEntity
     case maybeApp of
          Nothing ->
             throwError err404

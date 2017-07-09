@@ -4,7 +4,7 @@ import           Database.Persist.Postgresql (runSqlPool)
 import           Network.Wai.Handler.Warp    (run)
 import           System.Environment          (lookupEnv)
 
-import           Api                         (app, specs)
+import           Api                         (app)
 import           Config                      (Config (..), Environment (..),
                                               makePool, setLogger)
 import           Models                      (doMigrations)
