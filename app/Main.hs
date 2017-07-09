@@ -9,6 +9,8 @@ import           Config                      (Config (..), Environment (..),
                                               makePool, setLogger)
 import           Models                      (doMigrations)
 import           Safe                        (readMay)
+import           Elm                         (Spec (Spec), specsToDir, toElmDecoderSource,
+                                              toElmTypeSource)
 
 
 -- | The 'main' function gathers the required environment information and

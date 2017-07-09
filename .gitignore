@@ -1,6 +1,9 @@
+.env
 
 # Created by https://www.gitignore.io/api/haskell
-
+### Docker ###
+.env
+.DS_Store
 ### Haskell ###
 dist
 dist-*

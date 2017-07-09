@@ -1,13 +1,19 @@
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeFamilies               #-}
 
-module Api (app) where
+module Api (app, AppAPI) where
 
 import           Control.Monad.Except
 import           Control.Monad.Reader        (ReaderT, runReaderT)
 import           Control.Monad.Reader.Class
 import           Data.Int                    (Int64)
+import           Data.Text
 import           Database.Persist.Postgresql (Entity (..), fromSqlKey, insert,
                                               selectFirst, selectList, (==.))
 import           Network.Wai                 (Application)
@@ -15,8 +21,8 @@ import           Servant
 
 import           Config                      (App (..), Config (..))
 import           Models
-
 import           Api.FloraApp
+import           GHC.Generics                (Generic)
 
 -- | This is the function we export to run our 'UserAPI'. Given
 -- a 'Config', we return a WAI 'Application' which any WAI compliant server

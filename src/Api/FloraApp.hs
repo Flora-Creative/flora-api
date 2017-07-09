@@ -1,5 +1,11 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators              #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TypeFamilies               #-}
 
 module Api.FloraApp where
 
@@ -17,9 +23,8 @@ import           Config                      (App (..), Config (..))
 import           Models
 
 type FloraAppAPI =
-          Get '[JSON] [Entity Floraapps]
-          :<|>  Capture "name" String :> Get '[JSON] (Entity Floraapps)
-
+          Get '[JSON] [IOSApp]
+          :<|>  Capture "name" String :> Get '[JSON]  IOSApp
 
 -- | The server that runs the UserAPI
 floraAppServer :: ServerT FloraAppAPI App
@@ -27,14 +32,17 @@ floraAppServer = allFloraApps
                  :<|> singleFloraApp
 
 -- | Returns all users in the database.
-allFloraApps :: App [Entity Floraapps]
-allFloraApps =
-    runDb (selectList [] [])
+allFloraApps :: App [IOSApp]
+allFloraApps = do
+    storedApps <- runDb (selectList [] [])
+    let apps = map appFromEntity storedApps
+    return apps
 
 -- | Returns an app by name or throws a 404 error.
-singleFloraApp :: String -> App (Entity Floraapps)
+singleFloraApp :: String -> App IOSApp
 singleFloraApp str = do
-    maybeApp <- runDb (selectFirst [FloraappsShortName ==. str] [Asc FloraappsId])
+    maybeEntity <- runDb (selectFirst [FloraappsShortName ==. str] [Asc FloraappsId])
+    let maybeApp = fmap appFromEntity maybeEntity
     case maybeApp of
          Nothing ->
             throwError err404

@@ -1,7 +1,11 @@
 version: '3'
 services:
     flora-api:
+        env_file:
+            - ".env"
         build: .
+        env_file:
+            - ".env"
         image: flora-api
         command: flora-api
         expose:

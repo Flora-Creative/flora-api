@@ -55,6 +55,8 @@ setLogger Test = id
 setLogger Development = logStdoutDev
 setLogger Production = logStdout
 
+spaceCat a b = a <> " " <> b
+
 -- | This function creates a 'ConnectionPool' for the given environment.
 -- For 'Development' and 'Test' environments, we use a stock and highly
 -- insecure connection string. The 'Production' environment acquires the
@@ -74,20 +76,20 @@ makePool Production = do
     -- give us a @Maybe a@, which would make the code quite a bit more
     -- verbose.
     pool <- runMaybeT $ do
-        let keys = [ "host="
-                   , "port="
-                   , "user="
-                   , "password="
-                   , "dbname="
+        let keys = [ " host="
+                   , " port="
+                   , " user="
+                   , " password="
+                   , " dbname="
                    ]
             envs = [ "PGHOST"
                    , "PGPORT"
                    , "PGUSER"
                    , "PGPASS"
                    , "PGDATABASE"
-                   ]
+                   ]        
         envVars <- traverse (MaybeT . lookupEnv) envs
-        let prodStr = mconcat . zipWith (<>) keys $ BS.pack <$> envVars
+        let prodStr = mconcat . zipWith (spaceCat) keys $ BS.pack <$> envVars
         runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
     case pool of
         -- If we don't have a correct database configuration, we can't
