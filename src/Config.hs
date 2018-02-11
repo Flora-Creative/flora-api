@@ -51,9 +51,9 @@ data Environment
 
 -- | This returns a 'Middleware' based on the environment that we're in.
 setLogger :: Environment -> Middleware
-setLogger Test = id
+setLogger Test        = id
 setLogger Development = logStdoutDev
-setLogger Production = logStdout
+setLogger Production  = logStdout
 
 spaceCat a b = a <> " " <> b
 
@@ -87,7 +87,7 @@ makePool Production = do
                    , "PGUSER"
                    , "PGPASS"
                    , "PGDATABASE"
-                   ]        
+                   ]
         envVars <- traverse (MaybeT . lookupEnv) envs
         let prodStr = mconcat . zipWith (spaceCat) keys $ BS.pack <$> envVars
         runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
@@ -101,11 +101,11 @@ makePool Production = do
 
 -- | The number of pools to use for a given environment.
 envPool :: Environment -> Int
-envPool Test = 1
+envPool Test        = 1
 envPool Development = 1
-envPool Production = 8
+envPool Production  = 8
 
 -- | A basic 'ConnectionString' for local/test development. Pass in either
 -- @""@ for 'Development' or @"test"@ for 'Test'.
 connStr :: BS.ByteString -> ConnectionString
-connStr sfx = "host=localhost dbname=floraapps" <> sfx <> " user=TimothyJ password= port=5432"
+connStr sfx = "host=localhost dbname=postgres" <> sfx <> " user=TimothyJ password= port=5432"

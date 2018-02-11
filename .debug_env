@@ -1,0 +1,7 @@
+PGHOST=localhost
+PGUSER=TimothyJ
+PGPASS=
+PGDATABASE=postgres
+PGPORT=5432
+ENV=Development
+PORT=1234
