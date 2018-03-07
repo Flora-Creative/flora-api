@@ -26,7 +26,7 @@ main = do
         logger = setLogger env
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show port)
-    run port $ logger (simpleCors $ app cfg )
+    run port . logger . simpleCors . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.
