@@ -2,15 +2,17 @@ module Main where
 
 import           Database.Persist.Postgresql (runSqlPool)
 import           Network.Wai.Handler.Warp    (run)
+import           Network.Wai.Middleware.Cors (simpleCors)
 import           System.Environment          (lookupEnv)
 
 import           Api                         (app)
 import           Config                      (Config (..), Environment (..),
                                               makePool, setLogger)
+import           Elm                         (Spec (Spec), specsToDir,
+                                              toElmDecoderSource,
+                                              toElmTypeSource)
 import           Models                      (doMigrations)
 import           Safe                        (readMay)
-import           Elm                         (Spec (Spec), specsToDir, toElmDecoderSource,
-                                              toElmTypeSource)
 
 
 -- | The 'main' function gathers the required environment information and
@@ -24,7 +26,7 @@ main = do
         logger = setLogger env
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show port)
-    run port $ logger $ app cfg
+    run port . logger . simpleCors . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.

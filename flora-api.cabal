@@ -55,6 +55,7 @@ executable flora-api
         servant-elm -any,
         persistent-postgresql -any,
         wai -any,
+        wai-cors -any,
         warp -any,
         monad-logger -any,
         safe -any
