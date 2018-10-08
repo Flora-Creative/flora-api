@@ -31,6 +31,7 @@ library
         monad-control -any,
         monad-logger -any,
         mtl -any,
+        natural-transformation -any,  
         persistent -any,
         persistent-postgresql -any,
         persistent-template -any,
