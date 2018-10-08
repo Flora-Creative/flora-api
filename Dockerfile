@@ -1,4 +1,4 @@
-FROM haskell:8
+FROM haskell:8.4.3
 
 RUN export PATH=$(stack path --local-bin):$PATH
 RUN apt-get update
