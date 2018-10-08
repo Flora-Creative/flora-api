@@ -9,6 +9,7 @@ import           Control.Monad.Logger                 (runNoLoggingT,
                                                        runStdoutLoggingT)
 import           Control.Monad.Reader                 (MonadIO, MonadReader,
                                                        ReaderT)
+import           Control.Monad.Trans                  (lift)
 import           Control.Monad.Trans.Maybe            (MaybeT (..), runMaybeT)
 import qualified Data.ByteString.Char8                as BS
 import           Data.Monoid                          ((<>))
@@ -27,11 +28,13 @@ import           System.Environment                   (lookupEnv)
 --
 -- By encapsulating the effects in our newtype, we can add layers to the
 -- monad stack without having to modify code that uses the current layout.
-newtype App a
-    = App
-    { runApp :: ReaderT Config (ExceptT ServantErr IO) a
+newtype AppT m a
+    = AppT
+    { runApp :: ReaderT Config (ExceptT ServantErr m) a
     } deriving ( Functor, Applicative, Monad, MonadReader Config,
                  MonadError ServantErr, MonadIO)
+
+type App = AppT IO
 
 -- | The Config for our application is (for now) the 'Environment' we're
 -- running in and a Persistent 'ConnectionPool'.
@@ -90,7 +93,7 @@ makePool Production = do
                    ]
         envVars <- traverse (MaybeT . lookupEnv) envs
         let prodStr = mconcat . zipWith spaceCat keys $ BS.pack <$> envVars
-        runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
+        lift . runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
     case pool of
         -- If we don't have a correct database configuration, we can't
         -- handle that in the program, so we throw an IO exception. This is
