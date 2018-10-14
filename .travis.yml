@@ -1,0 +1,36 @@
+sudo:         required
+
+jobs:
+  include:
+    - stage:  build docker image
+      script:
+        - echo $HEROKU_API_KEY | docker login -u _ --password_stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - docker build -t $CONTAINER_NAME .
+        # presumably have to push?
+        - docker push $CONTAINER_NAME
+    - stage:  test
+      script:
+        - echo $HEROKU_API_KEY | docker login -u _ --password_stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - docker run --rm $CONTAINER_NAME stack test
+      # can run other tests in parallel (eg. integration tests)
+    - stage:  deploy
+      script:
+        - echo $HEROKU_API_KEY | docker login -u _ --password_stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        # re-tag as latest because it must be good
+        - docker tag $CONTAINER_NAME registry.heroku.com/flora-api/web:latest
+        - docker push registry.heroku.com/flora-api/web:latest
+        - wget -qO- https://toolbelt.heroku.com/install.sh | sh
+        - heroku container:release
+    - stage:  test deployment
+      script: 'curl https://flora-api.herokuapp.com'
+  # only deploy master
+  stages:
+    - build docker image
+    - test
+    - name:   deploy
+      if:     branch = master
+    - name:   test deployment
+      if:     branch = master
