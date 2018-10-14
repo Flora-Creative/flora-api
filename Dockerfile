@@ -11,4 +11,5 @@ COPY *.cabal ./
 RUN stack build --dependencies-only
 
 COPY . /app/user
+
 RUN stack install
