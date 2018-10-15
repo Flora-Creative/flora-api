@@ -1,0 +1,40 @@
+sudo:         required
+language:     minimal
+
+# only deploy master
+stages:
+  - build docker image
+  - test
+  - name:     deploy
+    if:       branch = master AND type != pull_request
+  - name:     test deployment
+    if:       branch = master AND type != pull_request
+env:
+  - secure:   "pXhfr+nmdWGrhxnE3AlwPZga9XWgf0+CBwuUH9FtPi5rjXSGMQHZfpAsemMur/awjEt3NpWm2fKswKd1oHE31PKnI6N/mGZ1Bi5QELhYIepADHrNQ8Hc1aGK666FJ5Sf4WYN9nUWRQDyKnmxmfJ1IlIquds9UcpuPs26Ixm5J/hFz2U70Lrh1WWD3I7EC8ElwoZ/OfcuP4xsoUKjrMSs/pQy8NBVrGvJ3YHsTiwE4N2pB2IuVBCzeYFqjGIJfcMI6CiRZPRwawpqhNDkSOMKRnMEoOSrWyzD3pI28q6MzuC19y90XrF0SM+0KRaMRAOfsVGAm6EtE08YyUIlLddn/+olkXDKpXJZXuHBgY9rvVEygshnxw4avLOLLwz35k7/NE7QJaFdUfKbCnlfXMVi3U9pBuyMgKbcaih9KAhOGuwXlb7Jtt5HbTNsP7GUhStLypTcpUuik++kvQBw3WD2D1f6aN/W3VteDkxBontq7qQfavqMa4yZLqvkIvbdZI3BEgIvSr+0MUI0yq1pHEabXSzBkfwuw0DWo4aZX4lJHV6lYSuyQb6D3nS3LPYUDZwcava27VPQwB60OjaIDjt+Bm3wcsCLX1GBjFAW5VgVzYNGYLqWJC2FF69E2IE2JM/vuIn2hp0qANNJfad8INusK9JOpepaaN8k+JIwGBxVRhI="
+jobs:
+  include:
+    - stage:  build docker image
+      script:
+        - echo $HEROKU_API_KEY | docker login registry.heroku.com -u _ --password-stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - docker build -t $CONTAINER_NAME .
+        # presumably have to push?
+        - docker push $CONTAINER_NAME
+    - stage:  test
+      script:
+        - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - docker run --rm $CONTAINER_NAME stack test
+      # can run other tests in parallel (eg. integration tests)
+    - stage:  deploy
+      script:
+        - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        # re-tag as latest because it must be good
+        - docker pull $CONTAINER_NAME
+        - docker tag $CONTAINER_NAME registry.heroku.com/flora-api/web:latest
+        - docker push registry.heroku.com/flora-api/web:latest
+        - wget -qO- https://cli-assets.heroku.com/install.sh | sh
+        - heroku container:release web -a flora-api
+    - stage:  test deployment
+      script: 'curl https://flora-api.herokuapp.com'

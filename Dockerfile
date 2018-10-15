@@ -1,4 +1,4 @@
-FROM haskell:8
+FROM haskell:8.4.3
 
 RUN export PATH=$(stack path --local-bin):$PATH
 RUN apt-get update
@@ -11,4 +11,5 @@ COPY *.cabal ./
 RUN stack build --dependencies-only
 
 COPY . /app/user
+
 RUN stack install
