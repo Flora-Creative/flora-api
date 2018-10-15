@@ -23,7 +23,7 @@ jobs:
         this would be lovely if the commit hashes were the same between github's
         fake merge commits generated for PRs and the actual commit
         - if [ "$TRAVIS_PULL_REQUEST" == "false" ];
-          then docker pull $CONTAINER_NAME;
+          then docker pull $CONTAINER_NAME || true;  # allow this to fail without erroring the build
           fi
         - docker build -t $CONTAINER_NAME .
         # presumably have to push?
