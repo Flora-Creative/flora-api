@@ -20,9 +20,9 @@ jobs:
       script:
         - echo $HEROKU_API_KEY | docker login registry.heroku.com -u _ --password-stdin
         - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
-        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]
-          then docker pull $CONTAINER_NAME
-          else docker pull registry.heroku.com/flora-api/web:latest
+        - if [ "$TRAVIS_PULL_REQUEST" == "false" ];
+          then docker pull $CONTAINER_NAME;
+          else docker pull registry.heroku.com/flora-api/web:latest;
           fi
         - docker build -t $CONTAINER_NAME .
         # presumably have to push?
