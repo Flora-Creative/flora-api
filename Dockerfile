@@ -14,4 +14,4 @@ COPY . /app/user
 
 RUN stack install
 
-ENTRYPOINT ["flora-api"]
+CMD flora-api
