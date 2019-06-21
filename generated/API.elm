@@ -7,6 +7,21 @@ import Http
 import String
 
 
+type alias ContactForm =
+    { name : String
+    , email : String
+    , subject : String
+    , message : String
+    }
+
+decodeContactForm : Decoder ContactForm
+decodeContactForm =
+    decode ContactForm
+        |> required "name" string
+        |> required "email" string
+        |> required "subject" string
+        |> required "message" string
+
 type alias IOSApp =
     { appName : String
     , images : List (String)

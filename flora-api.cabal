@@ -21,17 +21,22 @@ library
         Config
         Models
         Api
+        Api.ContactForm
         Api.FloraApp
     build-depends:
         base >=4.7 && <5,
         aeson -any,
+        blaze-html -any,
         bytestring -any,
         elm-export -any,
         elm-export-persistent -any,
+        HaskellNet-SSL -any,
+        HaskellNet -any,
         monad-control -any,
         monad-logger -any,
         mtl -any,
-        natural-transformation -any,  
+        natural-transformation -any,
+        network -any,
         persistent -any,
         persistent-postgresql -any,
         persistent-template -any,
@@ -39,6 +44,7 @@ library
         servant-elm -any,
         servant-js -any,
         servant-server -any,
+        smtp-mail -any,
         text -any,
         transformers -any,
         wai -any,

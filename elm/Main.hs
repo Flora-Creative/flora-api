@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
@@ -6,16 +6,19 @@ import           Database.Persist.Postgresql (runSqlPool)
 import           Network.Wai.Handler.Warp    (run)
 import           System.Environment          (lookupEnv)
 
-import           Api                         (app)
+import           Api                         (AppAPI, app)
+import           Api.ContactForm
 import           Api.FloraApp
 import           Config                      (Config (..), Environment (..),
                                               makePool, setLogger)
-import           Models                      (IOSApp)
-import           Safe                        (readMay)
 import           Data.Proxy                  (Proxy (Proxy))
 import           Data.Text
-import           Elm                         (Spec (Spec), specsToDir, toElmTypeSource,
-                                              toElmDecoderSource, toElmEncoderSource)
+import           Elm                         (Spec (Spec), specsToDir,
+                                              toElmDecoderSource,
+                                              toElmEncoderSource,
+                                              toElmTypeSource)
+import           Models                      (IOSApp)
+import           Safe                        (readMay)
 import           Servant.Elm
 
 
@@ -28,6 +31,8 @@ specs :: Spec
 specs =
     Spec ["API"]
          (defElmImports
+          : toElmTypeSource    (Proxy :: Proxy ContactForm)
+          : toElmDecoderSource (Proxy :: Proxy ContactForm)
           : toElmTypeSource    (Proxy :: Proxy IOSApp)
           : toElmDecoderSource (Proxy :: Proxy IOSApp)
           : generateElmForAPIWith elmOpts  (Proxy :: Proxy FloraAppAPI))
