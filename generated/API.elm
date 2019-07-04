@@ -1,31 +1,16 @@
 module API exposing (..)
 
+import Http
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (..)
 import Json.Encode
-import Http
 import String
 
 
-type alias ContactForm =
-    { name : String
-    , email : String
-    , subject : String
-    , message : String
-    }
-
-decodeContactForm : Decoder ContactForm
-decodeContactForm =
-    decode ContactForm
-        |> required "name" string
-        |> required "email" string
-        |> required "subject" string
-        |> required "message" string
-
 type alias IOSApp =
     { appName : String
-    , images : List (String)
-    , videoLinks : List (String)
+    , images : List String
+    , videoLinks : List String
     , itunesUrl : String
     , appDescription : String
     , backgroundColor : String
@@ -34,6 +19,7 @@ type alias IOSApp =
     , appIcon : String
     , shortName : String
     }
+
 
 decodeIOSApp : Decoder IOSApp
 decodeIOSApp =
@@ -49,7 +35,8 @@ decodeIOSApp =
         |> required "appIcon" string
         |> required "shortName" string
 
-get : String -> Http.Request (List (IOSApp))
+
+get : String -> Http.Request (List IOSApp)
 get urlBase =
     Http.request
         { method =
@@ -70,7 +57,8 @@ get urlBase =
             False
         }
 
-getByName : String -> String -> Http.Request (IOSApp)
+
+getByName : String -> String -> Http.Request IOSApp
 getByName urlBase capture_name =
     Http.request
         { method =
@@ -86,6 +74,51 @@ getByName urlBase capture_name =
             Http.emptyBody
         , expect =
             Http.expectJson decodeIOSApp
+        , timeout =
+            Nothing
+        , withCredentials =
+            False
+        }
+
+
+type alias ContactForm =
+    { origin : String
+    , name : String
+    , email : String
+    , subject : String
+    , message : String
+    , leaveMeBlank : Maybe String
+    }
+
+
+encodeContactForm : ContactForm -> Json.Encode.Value
+encodeContactForm x =
+    Json.Encode.object
+        [ ( "origin", Json.Encode.string x.origin )
+        , ( "name", Json.Encode.string x.name )
+        , ( "email", Json.Encode.string x.email )
+        , ( "subject", Json.Encode.string x.subject )
+        , ( "message", Json.Encode.string x.message )
+        , ( "leaveMeBlank", (Maybe.withDefault Json.Encode.null << Maybe.map Json.Encode.string) x.leaveMeBlank )
+        ]
+
+
+postContact : String -> ContactForm -> Http.Request ContactForm
+postContact urlBase body =
+    Http.request
+        { method =
+            "POST"
+        , headers =
+            []
+        , url =
+            String.join "/"
+                [ urlBase
+                , "contact"
+                ]
+        , body =
+            Http.jsonBody (encodeContactForm body)
+        , expect =
+            Http.expectJson decodeContactForm
         , timeout =
             Nothing
         , withCredentials =
