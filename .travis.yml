@@ -18,15 +18,15 @@ jobs:
   include:
     - stage:  build docker image
       script:
-        - echo $HEROKU_API_KEY | docker login registry.heroku.com -u _ --password-stdin
+        - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
         - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
-        this would be lovely if the commit hashes were the same between github's
-        fake merge commits generated for PRs and the actual commit
-        - if [ "$TRAVIS_PULL_REQUEST" == "false" ];
-          then docker pull $CONTAINER_NAME || true;  # allow this to fail without erroring the build
-          fi
+        # this would be lovely if the commit hashes were the same between github's
+        # fake merge commits generated for PRs and the actual commit
+
+        # allow this to fail without erroring the build
+        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker pull $CONTAINER_NAME || true; fi
         - docker build -t $CONTAINER_NAME .
-        # presumably have to push?
+      # presumably have to push?
         - docker push $CONTAINER_NAME
     - stage:  test
       script:
