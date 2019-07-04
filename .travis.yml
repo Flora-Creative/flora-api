@@ -19,9 +19,11 @@ jobs:
     - stage:  build docker image
       script:
         - echo $HEROKU_API_KEY | docker login registry.heroku.com -u _ --password-stdin
-        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
+        this would be lovely if the commit hashes were the same between github's
+        fake merge commits generated for PRs and the actual commit
         - if [ "$TRAVIS_PULL_REQUEST" == "false" ];
-          then docker pull $CONTAINER_NAME;
+          then docker pull $CONTAINER_NAME || true;  # allow this to fail without erroring the build
           fi
         - docker build -t $CONTAINER_NAME .
         # presumably have to push?
@@ -29,13 +31,13 @@ jobs:
     - stage:  test
       script:
         - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
-        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
         - docker run --rm $CONTAINER_NAME stack test
       # can run other tests in parallel (eg. integration tests)
     - stage:  deploy
       script:
         - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
-        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD)
+        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
         # re-tag as latest because it must be good
         - docker pull $CONTAINER_NAME
         - docker tag $CONTAINER_NAME registry.heroku.com/flora-api/web:latest
