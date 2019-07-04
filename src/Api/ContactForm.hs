@@ -17,12 +17,13 @@ import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Control.Monad.Reader.Class
 import Data.Aeson
-import Data.Text as T
+import Data.Text.Lazy as T
 import Elm
 import GHC.Generics
 import Network.HaskellNet.Auth (AuthType(LOGIN))
-import Network.HaskellNet.SMTP
-import Network.HaskellNet.SMTP.SSL as SMTP
+import Network.HaskellNet.SMTP ()
+import Network.HaskellNet.SMTP.SSL as SSL
+import Network.HaskellNet.SSL (Settings)
 import Network.Socket
 import Servant
 import Servant.JS (vanillaJS, writeJSForAPI)
@@ -30,10 +31,12 @@ import qualified Text.Blaze.Html
 import Text.Blaze.Html5
 
 data ContactForm = ContactForm
-    { name :: String
+    { origin :: String  -- Where it came from, should be "Phlox Phaser" or "Website"
+    , name :: String
     , email :: String
     , subject :: String
     , message :: String
+    , leaveMeBlank :: Maybe String
     } deriving (Eq,Show,Generic)
 
 instance FromJSON ContactForm
@@ -58,20 +61,32 @@ contactFormHandlerWithServer server contactForm = do
     return contactForm
 
 sendEmail :: SMTPServer -> ContactForm -> IO ()
-sendEmail server form = do
-    let from = username server
-    let to = username server
-    let subject = "email subject"
-    let body = "email body"
-    let htmlBody = ""
-    putStrLn $
-        "Attempting to authenticate:" <> username server <> ":" <> password server
-    doSMTPPort (host server) (port server) $
-        \conn -> do
-            authSuccess <- 
-                SMTP.authenticate LOGIN (username server) (password server) conn
-            if authSuccess
-                then sendMimeMail to from subject body htmlBody [] conn
-                else putStrLn "Authentication failed."
+sendEmail (SMTPServer host port username password) form = 
+    case leaveMeBlank form of
+        Just _ -> putStrLn "Received honeypot request"
+        Nothing -> 
+            doSMTPSSLWithSettings host sslSettings $
+            \conn -> do
+                authSuccess <- SSL.authenticate LOGIN username password conn
+                if authSuccess
+                    then sendPlainTextMail
+                             "support@flora-creative.com"
+                             username
+                             emailSubject
+                             emailBody
+                             conn
+                    else putStrLn "Authentication failed."
+            where sslSettings = Settings port 10000 True False
+                  emailBody = messageFromContactForm form
+                  emailSubject = "Automated message received from " <> origin form
+
+messageFromContactForm :: ContactForm -> Text
+messageFromContactForm (ContactForm _ name email subject message _) = 
+    T.pack $
+    "Message received from: " <> name <> "\n Email address (replyto:): " <> email <>
+    "\n Subject of inquiry: " <>
+    subject <>
+    "\n Message: " <>
+    message
 
 type ContactApi = "contact" :> ReqBody '[JSON] ContactForm :> Post '[JSON] ContactForm
