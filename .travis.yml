@@ -21,12 +21,9 @@ jobs:
       script:
         - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
         - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
-        # this would be lovely if the commit hashes were the same between github's
-        # fake merge commits generated for PRs and the actual commit
-
-        # allow this to fail without erroring the build
-        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker pull $CONTAINER_NAME || true; fi
-        - docker build --cache-from $CONTAINER_NAME -t $CONTAINER_NAME .
+        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then export CACHE_CONTAINER=$CONTAINER_NAME; else export CACHE_CONTAINER=registry.heroku.com/flora-api/web:latest;
+        - docker pull $CONTAINER_NAME || true
+        - docker build --cache-from registry.heroku.com/flora-api/web -t $CONTAINER_NAME .
       # presumably have to push?
         - docker push $CONTAINER_NAME
       # can run other tests in parallel (eg. integration tests)
