@@ -5,6 +5,9 @@ language:     minimal
 branches:
   only:
     - master  # PRs to master count as master
+cache:
+  directories:
+  - $(stack path --stack-root)
 stages:
   - build docker image
   - test
@@ -26,7 +29,6 @@ jobs:
         # allow this to fail without erroring the build
         - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker pull $CONTAINER_NAME || true; fi
         - docker build -t $CONTAINER_NAME .
-      # presumably have to push?
         - docker push $CONTAINER_NAME
     - stage:  test
       script:
