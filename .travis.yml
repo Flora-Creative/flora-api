@@ -1,5 +1,7 @@
-sudo:         required
 language:     minimal
+
+services:
+  - docker
 
 # only deploy master
 branches:
@@ -7,7 +9,6 @@ branches:
     - master  # PRs to master count as master
 stages:
   - build docker image
-  - test
   - name:     deploy
     if:       type != pull_request
   - name:     test deployment
@@ -20,19 +21,13 @@ jobs:
       script:
         - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
         - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
-        # this would be lovely if the commit hashes were the same between github's
-        # fake merge commits generated for PRs and the actual commit
-
-        # allow this to fail without erroring the build
-        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker pull $CONTAINER_NAME || true; fi
-        - docker build -t $CONTAINER_NAME .
+        - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then export CACHE_CONTAINER=$CONTAINER_NAME; else export CACHE_CONTAINER="registry.heroku.com/flora-api/web:build"; fi
+        - docker pull $CACHE_CONTAINER || true
+        - docker build --cache-from $CACHE_CONTAINER -t $CONTAINER_NAME .
       # presumably have to push?
         - docker push $CONTAINER_NAME
-    - stage:  test
-      script:
-        - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
-        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
-        - docker run --rm $CONTAINER_NAME stack test
+        - docker tag $CONTAINER_NAME registry.heroku.com/flora-api/web:build
+        - docker push registry.heroku.com/flora-api/web:build
       # can run other tests in parallel (eg. integration tests)
     - stage:  deploy
       script:
