@@ -7,7 +7,6 @@ branches:
     - master  # PRs to master count as master
 stages:
   - build docker image
-  - test
   - name:     deploy
     if:       type != pull_request
   - name:     test deployment
@@ -28,11 +27,6 @@ jobs:
         - docker build -t $CONTAINER_NAME .
       # presumably have to push?
         - docker push $CONTAINER_NAME
-    - stage:  test
-      script:
-        - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
-        - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
-        - docker run --rm $CONTAINER_NAME stack test
       # can run other tests in parallel (eg. integration tests)
     - stage:  deploy
       script:
