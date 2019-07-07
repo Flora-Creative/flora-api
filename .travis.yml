@@ -22,8 +22,8 @@ jobs:
         - echo $HEROKU_API_KEY | docker login -u _ registry.heroku.com --password-stdin
         - export CONTAINER_NAME=registry.heroku.com/flora-api/web:$(git rev-parse --short HEAD^2)
         - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then export CACHE_CONTAINER=$CONTAINER_NAME; else export CACHE_CONTAINER="registry.heroku.com/flora-api/web:latest";
-        - docker pull $CONTAINER_NAME || true
-        - docker build --cache-from registry.heroku.com/flora-api/web -t $CONTAINER_NAME .
+        - docker pull $CACHE_CONTAINER || true
+        - docker build --cache-from CACHE_CONTAINER -t $CONTAINER_NAME .
       # presumably have to push?
         - docker push $CONTAINER_NAME
       # can run other tests in parallel (eg. integration tests)
