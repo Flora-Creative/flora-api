@@ -36,11 +36,11 @@ main = do
             simpleCorsResourcePolicy
             { corsRequestHeaders = ["Content-Type"]
             }
+        customCors = cors (const $ Just policy)
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show port)
     putStrLn ("SMTP: " ++ show smtpServer)
-    run port . logger . cors (const $ Just policy) . providePreFlightHeaders . app $
-        cfg
+    run port . logger . customCors . providePreFlightHeaders . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.
