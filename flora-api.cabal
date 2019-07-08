@@ -59,8 +59,12 @@ executable flora-api
         base -any,
         elm-export -any,
         flora-api -any,
-        servant-elm -any,
         persistent-postgresql -any,
+        servant -any,
+        servant-elm -any,
+        servant-options -any,
+        servant-server -any,
+        text -any,
         wai -any,
         wai-cors -any,
         warp -any,
@@ -76,13 +80,7 @@ executable elm-api-consumer
         base -any,
         elm-export -any,
         flora-api -any,
-        servant-elm -any,
-        persistent-postgresql -any,
-        text -any,
-        wai -any,
-        warp -any,
-        monad-logger -any,
-        safe -any
+        servant-elm -any
     default-language: Haskell2010
     hs-source-dirs: elm
     ghc-options: -threaded -rtsopts -with-rtsopts=-N

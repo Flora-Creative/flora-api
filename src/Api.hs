@@ -9,9 +9,12 @@
 
 module Api
   (app
-  ,AppAPI)
+  ,appAPI)
   where
 
+import Api.ContactForm
+import Api.FloraApp
+import Config (AppT(..), Config(..))
 import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Control.Monad.Reader.Class
@@ -20,13 +23,10 @@ import Data.Int (Int64)
 import Data.Text
 import Database.Persist.Postgresql
        (Entity(..), fromSqlKey, insert, selectFirst, selectList, (==.))
-import Network.Wai (Application)
-import Servant
-import Api.ContactForm
-import Api.FloraApp
-import Config (AppT(..), Config(..))
 import GHC.Generics (Generic)
 import Models
+import Network.Wai (Application)
+import Servant
 
 -- | This functions tells Servant how to run the 'App' monad with our
 -- 'server' function.
@@ -62,13 +62,24 @@ files = serveDirectoryFileServer "assets"
 -- two different APIs and applications. This is a powerful tool for code
 -- reuse and abstraction! We need to put the 'Raw' endpoint last, since it
 -- always succeeds.
-type AppAPI = FloraAppAPI :<|> ContactApi :<|> Raw
+type APIWithResources = FloraAppAPI :<|> ContactApi :<|> Raw
 
-appApi :: Proxy AppAPI
-appApi = Proxy
+-- A sneaky thing here is that our Raw endpoint being last will return NoContent
+-- for every unknown route, which will prevent us from generating an OPTIONS route
+-- via introspection - in the exposed interface we will omit the Raw endpoint
+type APIWithoutResources = FloraAppAPI :<|> ContactApi
+
+appAPI :: Proxy APIWithoutResources
+appAPI = Proxy
+
+completeAPIWithResources :: Proxy APIWithResources
+completeAPIWithResources = Proxy
 
 -- | Finally, this function takes a configuration and runs our 'UserAPI'
 -- alongside the 'Raw' endpoint that serves all of our files.
 app
     :: Config -> Application
-app cfg = serve appApi (appToServer cfg :<|> contactToServer cfg :<|> files)
+app cfg = 
+    serve
+        completeAPIWithResources
+        (appToServer cfg :<|> contactToServer cfg :<|> files)

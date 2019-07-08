@@ -2,21 +2,14 @@
 
 module Main where
 
-import Api (AppAPI, app)
+import Api (app)
 import Api.ContactForm
 import Api.FloraApp
-import Config (Config(..), Environment(..), makePool, setLogger)
-import Data.Proxy (Proxy(Proxy))
-import Data.Text
-import Database.Persist.Postgresql (runSqlPool)
 import Elm
        (Spec(Spec), specsToDir, toElmDecoderSource, toElmEncoderSource,
         toElmTypeSource)
 import Models (IOSApp)
-import Network.Wai.Handler.Warp (run)
-import Safe (readMay)
 import Servant.Elm
-import System.Environment (lookupEnv)
 
 -- | The 'main' function gathers the required environment information and
 -- initializes the application.
