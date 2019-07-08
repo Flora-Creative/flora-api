@@ -32,7 +32,7 @@ main = do
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show port)
     putStrLn ("SMTP: " ++ show smtpServer)
-    run port . logger . providePreFlightHeaders . simpleCors . app $ cfg
+    run port . logger . simpleCors . providePreFlightHeaders . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.
