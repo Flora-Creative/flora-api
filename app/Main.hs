@@ -1,6 +1,6 @@
 module Main where
 
-import Api (app)
+import Api (app, appAPI)
 import Config
        (Config(..), Environment(..), SMTPServer(..), makePool,
         makeSMTPServer, setLogger)
@@ -8,6 +8,7 @@ import Database.Persist.Postgresql (runSqlPool)
 import Models (doMigrations)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.Cors (simpleCors)
+import Network.Wai.Middleware.Servant.Options (provideOptions)
 import Safe (readMay)
 import System.Environment (lookupEnv)
 
@@ -27,10 +28,11 @@ main = do
             , getSMTPServer = smtpServer
             }
         logger = setLogger env
+        providePreFlightHeaders = provideOptions appAPI
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show port)
     putStrLn ("SMTP: " ++ show smtpServer)
-    run port . logger . simpleCors . app $ cfg
+    run port . logger . simpleCors . providePreFlightHeaders . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.

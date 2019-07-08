@@ -17,6 +17,7 @@ import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Control.Monad.Reader.Class
 import Data.Aeson
+import Data.Monoid ((<>))
 import Data.Text.Lazy as T
 import Elm
 import GHC.Generics
