@@ -70,14 +70,16 @@ sendEmail (SMTPServer host port username password) form =
             \conn -> do
                 authSuccess <- SSL.authenticate LOGIN username password conn
                 if authSuccess
-                    then sendPlainTextMail
-                             "support@flora-creative.com"
-                             username
-                             emailSubject
-                             emailBody
-                             conn
+                    then do
+                        print form
+                        sendPlainTextMail
+                            "support@flora-creative.com"
+                            username
+                            emailSubject
+                            emailBody
+                            conn
                     else putStrLn "Authentication failed."
-            where sslSettings = Settings port 10000 True False
+            where sslSettings = Settings port 10000 False False
                   emailBody = messageFromContactForm form
                   emailSubject = "Automated message received from " <> origin form
 

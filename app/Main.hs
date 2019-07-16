@@ -21,7 +21,7 @@ main
     :: IO ()
 main = do
     env <- lookupSetting "ENV" Development
-    port <- lookupSetting "PORT" 1234
+    runport <- lookupSetting "PORT" 1234
     pool <- makePool env
     smtpServer <- makeSMTPServer env
     let cfg = 
@@ -38,9 +38,10 @@ main = do
             }
         customCors = cors (const $ Just policy)
     putStrLn ("Environment: " ++ show env)
-    putStrLn ("Port: " ++ show port)
-    putStrLn ("SMTP: " ++ show smtpServer)
-    run port . logger . customCors . providePreFlightHeaders . app $ cfg
+    putStrLn ("Port: " ++ show runport)
+    putStrLn ("SMTP Host: " ++ host smtpServer)
+    putStrLn ("SMTP Port: " ++ show (port smtpServer))
+    run runport . logger . customCors . providePreFlightHeaders . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
 -- 'read's that information into the inferred type.
