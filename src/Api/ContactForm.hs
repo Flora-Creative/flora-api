@@ -71,13 +71,13 @@ sendEmail (SMTPServer host port username password) form =
                 authSuccess <- SSL.authenticate LOGIN username password conn
                 if authSuccess
                     then do
+                        print form
                         sendPlainTextMail
                             "support@flora-creative.com"
                             username
                             emailSubject
                             emailBody
                             conn
-                        putStrLn (show form)
                     else putStrLn "Authentication failed."
             where sslSettings = Settings port 10000 False False
                   emailBody = messageFromContactForm form
