@@ -23,28 +23,44 @@ library
         Api
         Api.ContactForm
         Api.FloraApp
+    other-modules:
+        Network.Compat
+        Network.HaskellNet.Auth
+        Network.HaskellNet.BSStream
+        Network.HaskellNet.SMTP
+        Network.HaskellNet.SMTP.SSL
+        Network.HaskellNet.SSL
+        Network.HaskellNet.SSL.Internal
     build-depends:
         base >=4.7 && <5,
         aeson -any,
+        array -any,
+        base64-string -any,
         blaze-html -any,
         bytestring -any,
+        connection >= 0.2.7 && < 0.3,
+        cryptohash >0.6,
+        data-default,
         elm-export -any,
         elm-export-persistent -any,
-        HaskellNet-SSL -any,
+        mime-mail >= 0.4.7 && < 0.6,
         monad-control -any,
         monad-logger -any,
         mtl -any,
         natural-transformation -any,
         network -any,
+        old-time -any,
         persistent -any,
         persistent-postgresql -any,
         persistent-template -any,
+        pretty -any,
         servant -any,
         servant-elm -any,
         servant-js -any,
         servant-server -any,
         smtp-mail -any,
         text -any,
+        tls >= 1.2 && < 1.5,
         transformers -any,
         wai -any,
         wai-extra -any,
