@@ -13,6 +13,7 @@
 module Api.ContactForm where
 
 import Config (AppT(..), Config(..), SMTPServer(..))
+import Control.Concurrent
 import Control.Monad.Except
 import Control.Monad.Reader (ReaderT, runReaderT)
 import Control.Monad.Reader.Class
@@ -58,7 +59,7 @@ contactFormHandlerWithServer
     :: (MonadIO m)
     => SMTPServer -> ContactForm -> AppT m ContactForm
 contactFormHandlerWithServer server contactForm = do
-    liftIO $ sendEmail server contactForm
+    liftIO $ forkIO (sendEmail server contactForm)
     return contactForm
 
 sendEmail :: SMTPServer -> ContactForm -> IO ()
