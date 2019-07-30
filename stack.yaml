@@ -10,8 +10,6 @@ packages:
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
 extra-deps:
  - elm-export-persistent-0.2.0
- - github:          pfcm/haskellnet
-   commit:          af38595ec1bd804bdc365d103c9142f595e6295c
  - HaskellNet-SSL-0.3.4.1@sha256:3ca14dd69460a380cf69aed40654fb10c4c03e344632b6a9986568c87feda157
  - servant-options-0.1.0.0@sha256:39f50166a68006250e79370372f553ca476f14d06d93fa0c401050253aeba803,914
  - servant-foreign-0.15
