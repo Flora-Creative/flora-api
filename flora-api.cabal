@@ -31,7 +31,7 @@ library
         elm-export -any,
         elm-export-persistent -any,
         HaskellNet-SSL -any,
-        HaskellNet -any,
+        HaskellNet == 0.5.1.1,
         monad-control -any,
         monad-logger -any,
         mtl -any,

@@ -12,6 +12,20 @@ packages:
   original:
     hackage: elm-export-persistent-0.2.0
 - completed:
+    size: 55431
+    url: https://github.com/pfcm/haskellnet/archive/af38595ec1bd804bdc365d103c9142f595e6295c.tar.gz
+    cabal-file:
+      size: 2069
+      sha256: 9192ac19ea5da3cd4b8c86a4266592aff7b9256311aa5f42ae6de94ccacf1366
+    name: HaskellNet
+    version: 0.5.1
+    sha256: 62670c5a7edb656a94ab7db89a7a2d446ac0d2ab3d131a2274639d201564f343
+    pantry-tree:
+      size: 4011
+      sha256: 0f0377b7d9ce846a930cb59f19beed8de465df83ca0bc6966c5b236f8566060d
+  original:
+    url: https://github.com/pfcm/haskellnet/archive/af38595ec1bd804bdc365d103c9142f595e6295c.tar.gz
+- completed:
     hackage: HaskellNet-SSL-0.3.4.1@sha256:3ca14dd69460a380cf69aed40654fb10c4c03e344632b6a9986568c87feda157,1843
     pantry-tree:
       size: 577
