@@ -4,8 +4,7 @@ module Main where
 
 import Api (app, appAPI)
 import Config
-       (Config(..), Environment(..), SMTPServer(..), makePool,
-        makeSMTPServer, setLogger)
+       (Config(..), Environment(..), SMTPServer(..), makePool, setLogger)
 import Database.Persist.Postgresql (runSqlPool)
 import Models (doMigrations)
 import Network.Wai.Handler.Warp (run)
@@ -23,12 +22,15 @@ main = do
     env <- lookupSetting "ENV" Development
     runport <- lookupSetting "PORT" 1234
     pool <- makePool env
-    smtpServer <- makeSMTPServer env
+    smtpPort <- lookupSettingOrError "SMTPPORT"
+    smtpHost <- lookupSettingOrError "SMTPHOST"
+    smtpUser <- lookupSettingOrError "SMTPUSER"
+    smtpPass <- lookupSettingOrError "SMTPPASS"
     let cfg = 
             Config
             { getPool = pool
             , getEnv = env
-            , getSMTPServer = smtpServer
+            , getSMTPServer = SMTPServer smtpHost (read smtpPort) smtpUser smtpPass
             }
         logger = setLogger env
         providePreFlightHeaders = provideOptions appAPI
@@ -39,8 +41,8 @@ main = do
         customCors = cors (const $ Just policy)
     putStrLn ("Environment: " ++ show env)
     putStrLn ("Port: " ++ show runport)
-    putStrLn ("SMTP Host: " ++ host smtpServer)
-    putStrLn ("SMTP Port: " ++ show (port smtpServer))
+    putStrLn ("SMTP Host: " ++ smtpHost)
+    putStrLn ("SMTP Port: " ++ smtpPort)
     run runport . logger . customCors . providePreFlightHeaders . app $ cfg
 
 -- | Looks up a setting in the environment, with a provided default, and
@@ -56,3 +58,10 @@ lookupSetting env def = do
   where
     handleFailedRead str = 
         error $ mconcat ["Failed to read [[", str, "]] for environment variable ", env]
+
+lookupSettingOrError :: String -> IO String
+lookupSettingOrError env = do
+    maybeValue <- lookupEnv env
+    case maybeValue of
+        Nothing -> error $ "Failed to read for environment variable: " ++ env
+        Just str -> return str

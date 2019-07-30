@@ -12,12 +12,14 @@ import Control.Monad.Trans.Maybe (MaybeT(..), runMaybeT)
 import qualified Data.ByteString.Char8 as BS
 import Data.Monoid ((<>))
 import Database.Persist.Postgresql
-       (ConnectionPool, ConnectionString, createPostgresqlPool)
+  ( ConnectionPool
+  , ConnectionString
+  , createPostgresqlPool
+  )
 import Network.Mail.SMTP
 import Network.Socket
 import Network.Wai (Middleware)
-import Network.Wai.Middleware.RequestLogger
-       (logStdout, logStdoutDev)
+import Network.Wai.Middleware.RequestLogger (logStdout, logStdoutDev)
 import Servant (ServantErr)
 import System.Environment (lookupEnv)
 
@@ -29,37 +31,42 @@ import System.Environment (lookupEnv)
 -- By encapsulating the effects in our newtype, we can add layers to the
 -- monad stack without having to modify code that uses the current layout.
 newtype AppT m a = AppT
-    { runApp :: ReaderT Config (ExceptT ServantErr m) a
-    } deriving (Functor,Applicative,Monad,MonadReader Config,MonadError ServantErr,MonadIO)
+  { runApp :: ReaderT Config (ExceptT ServantErr m) a
+  } deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadReader Config
+             , MonadError ServantErr
+             , MonadIO
+             )
 
 type App = AppT IO
 
 -- | The Config for our application is (for now) the 'Environment' we're
 -- running in and a Persistent 'ConnectionPool'.
 data Config = Config
-    { getPool :: ConnectionPool
-    , getEnv :: Environment
-    , getSMTPServer :: SMTPServer
-    } 
+  { getPool :: ConnectionPool
+  , getEnv :: Environment
+  , getSMTPServer :: SMTPServer
+  }
 
 -- | Right now, we're distinguishing between three environments. We could
 -- also add a @Staging@ environment if we needed to.
 data Environment
-    = Development 
-    | Test 
-    | Production 
-    deriving (Eq,Show,Read)
+  = Development
+  | Test
+  | Production
+  deriving (Eq, Show, Read)
 
 data SMTPServer = SMTPServer
-    { host :: HostName
-    , port :: PortNumber
-    , username :: UserName
-    , password :: Password
-    } deriving (Show,Read)
+  { host :: HostName
+  , port :: PortNumber
+  , username :: UserName
+  , password :: Password
+  } deriving (Show, Read)
 
 -- | This returns a 'Middleware' based on the environment that we're in.
-setLogger
-    :: Environment -> Middleware
+setLogger :: Environment -> Middleware
 setLogger Test = id
 setLogger Development = logStdoutDev
 setLogger Production = logStdout
@@ -69,12 +76,12 @@ setLogger Production = logStdout
 -- insecure connection string. The 'Production' environment acquires the
 -- information from environment variables that are set by the keter
 -- deployment application.
-makePool
-    :: Environment -> IO ConnectionPool
-makePool Test = runNoLoggingT (createPostgresqlPool (connStr "test") (envPool Test))
-makePool Development = 
-    runStdoutLoggingT (createPostgresqlPool (connStr "") (envPool Development))
-makePool Production = do
+makePool :: Environment -> IO ConnectionPool
+makePool Test =
+  runNoLoggingT (createPostgresqlPool (connStr "test") (envPool Test))
+makePool Development =
+  runStdoutLoggingT (createPostgresqlPool (connStr "") (envPool Development))
+makePool Production
     -- This function makes heavy use of the 'MaybeT' monad transformer, which
     -- might be confusing if you're not familiar with it. It allows us to
     -- combine the effects from 'IO' and the effect of 'Maybe' into a single
@@ -82,52 +89,35 @@ makePool Production = do
     -- @a@. If we just had @IO (Maybe a)@, then binding out of the IO would
     -- give us a @Maybe a@, which would make the code quite a bit more
     -- verbose.
-    let concatWithSpace a b = a <> " " <> b
-    pool <- 
-        runMaybeT $
-        do let keys = [" host=", " port=", " user=", " password=", " dbname="]
-               envs = ["PGHOST", "PGPORT", "PGUSER", "PGPASS", "PGDATABASE"]
-           envVars <- traverse (MaybeT . lookupEnv) envs
-           let prodStr = mconcat . zipWith concatWithSpace keys $ BS.pack <$> envVars
-           lift . runStdoutLoggingT $ createPostgresqlPool prodStr (envPool Production)
-    case pool of
+ = do
+  let concatWithSpace a b = a <> " " <> b
+  pool <-
+    runMaybeT $ do
+      let keys = [" host=", " port=", " user=", " password=", " dbname="]
+          envs = ["PGHOST", "PGPORT", "PGUSER", "PGPASS", "PGDATABASE"]
+      envVars <- traverse (MaybeT . lookupEnv) envs
+      let prodStr = mconcat . zipWith concatWithSpace keys $ BS.pack <$> envVars
+      lift . runStdoutLoggingT $
+        createPostgresqlPool prodStr (envPool Production)
+  case pool
         -- If we don't have a correct database configuration, we can't
         -- handle that in the program, so we throw an IO exception. This is
         -- one example where using an exception is preferable to 'Maybe' or
         -- 'Either'.
-        Nothing -> 
-            throwIO (userError "Database Configuration not present in environment.")
-        Just a -> return a
+        of
+    Nothing ->
+      throwIO (userError "Database Configuration not present in environment.")
+    Just a -> return a
 
 -- | The number of pools to use for a given environment.
-envPool
-    :: Environment -> Int
+envPool :: Environment -> Int
 envPool Test = 1
 envPool Development = 1
 envPool Production = 8
 
 -- | A basic 'ConnectionString' for local/test development. Pass in either
 -- @""@ for 'Development' or @"test"@ for 'Test'.
-connStr
-    :: BS.ByteString -> ConnectionString
-connStr sfx = 
-    "host=localhost dbname=postgres" <> sfx <> " user=TimothyJ password= port=5432"
-
-makeSMTPServer :: Environment -> IO SMTPServer
-makeSMTPServer env = do
-    host <- getExpectedEnvironmentValue "SMTPHOST"
-    portString <- getExpectedEnvironmentValue $ "SMTPPORT"
-    let portNumber = read portString
-    username <- getExpectedEnvironmentValue "SMTPUSER"
-    password <- getExpectedEnvironmentValue "SMTPPASS"
-    return $ SMTPServer host portNumber username password
-
-getExpectedEnvironmentValue :: String -> IO String
-getExpectedEnvironmentValue key = do
-    maybeValue <- lookupEnv key
-    case maybeValue of
-        Just value -> return value
-        Nothing -> 
-            throwIO
-                (userError $
-                 "Missing Configuration value for " <> key <> " in environment.")
+connStr :: BS.ByteString -> ConnectionString
+connStr sfx =
+  "host=localhost dbname=postgres" <> sfx <>
+  " user=TimothyJ password= port=5432"
